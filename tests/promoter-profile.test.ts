@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { GET, POST } from "../app/api/v1/promoter-profile/route.ts";
+import { PATCH } from "../app/api/v1/promoter-profile/[id]/route.ts";
+import { promoterProfileAuditCount } from "../lib/promoter-profile.ts";
+const headers = { "x-user-role": "bank_analyst" };
+test("returns seeded synthetic promoter profiles with trace id", async () => { const response = await GET(new Request("http://test/api/v1/promoter-profile", { headers })); const payload = await response.json(); assert.equal(response.status, 200); assert.equal(payload.data[0].display_name, "Anita Kulkarni"); assert.ok(payload.trace_id.startsWith("trc_")); });
+test("rejects incomplete promoter profile creation", async () => { const response = await POST(new Request("http://test/api/v1/promoter-profile", { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: "{}" })); const payload = await response.json(); assert.equal(response.status, 400); assert.equal(payload.error.code, "VALIDATION_ERROR"); });
+test("denies unauthorized promoter profile access", async () => { const response = await GET(new Request("http://test/api/v1/promoter-profile", { headers: { "x-user-role": "borrower" } })); const payload = await response.json(); assert.equal(response.status, 403); assert.equal(payload.error.code, "AUTHORIZATION_DENIED"); assert.equal("data" in payload, false); });
+test("audits promoter profile changes", async () => { const before = promoterProfileAuditCount(); const response = await PATCH(new Request("http://test/api/v1/promoter-profile/promoter_demo_002", { method: "PATCH", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ ownership_band: "Minority promoter" }) }), { params: Promise.resolve({ id: "promoter_demo_002" }) }); assert.equal(response.status, 200); assert.equal(promoterProfileAuditCount(), before + 1); });

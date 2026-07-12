@@ -1,0 +1,1 @@
+export function SectionHeader({ title, description }: { title: string; description?: string }) { return <div className="section-header-new"><h2>{title}</h2>{description && <p>{description}</p>}</div>; }

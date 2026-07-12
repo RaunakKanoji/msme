@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { GET, POST } from "../app/api/v1/business-addresses/route.ts";
+import { PATCH } from "../app/api/v1/business-addresses/[id]/route.ts";
+import { businessAddressAuditCount } from "../lib/business-addresses.ts";
+const headers = { "x-user-role": "bank_analyst" };
+test("returns seeded synthetic business addresses with trace id", async () => { const response = await GET(new Request("http://test/api/v1/business-addresses", { headers })); const payload = await response.json(); assert.equal(response.status, 200); assert.equal(payload.data.length, 2); assert.ok(payload.trace_id.startsWith("trc_")); });
+test("rejects incomplete business address creation", async () => { const response = await POST(new Request("http://test/api/v1/business-addresses", { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: "{}" })); const payload = await response.json(); assert.equal(response.status, 400); assert.equal(payload.error.code, "VALIDATION_ERROR"); });
+test("denies unauthorized business address access", async () => { const response = await GET(new Request("http://test/api/v1/business-addresses", { headers: { "x-user-role": "borrower" } })); const payload = await response.json(); assert.equal(response.status, 403); assert.equal(payload.error.code, "AUTHORIZATION_DENIED"); assert.equal("data" in payload, false); });
+test("audits business address changes", async () => { const before = businessAddressAuditCount(); const response = await PATCH(new Request("http://test/api/v1/business-addresses/address_demo_operating_001", { method: "PATCH", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ consent_status: "Pending" }) }), { params: Promise.resolve({ id: "address_demo_operating_001" }) }); assert.equal(response.status, 200); assert.equal(businessAddressAuditCount(), before + 1); });

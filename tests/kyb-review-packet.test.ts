@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { GET, POST } from "../app/api/v1/kyb-review-packet/route.ts";
+import { PATCH } from "../app/api/v1/kyb-review-packet/[id]/route.ts";
+import { kybReviewPacketAuditCount } from "../lib/kyb-review-packet.ts";
+const headers = { "x-user-role": "bank_analyst" };
+test("returns seeded synthetic KYB packet with trace id", async () => { const response = await GET(new Request("http://test/api/v1/kyb-review-packet", { headers })); const payload = await response.json(); assert.equal(response.status, 200); assert.equal(payload.data[0].packet_status, "Ready for analyst review"); assert.ok(payload.trace_id.startsWith("trc_")); });
+test("rejects incomplete KYB packet creation", async () => { const response = await POST(new Request("http://test/api/v1/kyb-review-packet", { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: "{}" })); const payload = await response.json(); assert.equal(response.status, 400); assert.equal(payload.error.code, "VALIDATION_ERROR"); });
+test("denies unauthorized KYB packet access", async () => { const response = await GET(new Request("http://test/api/v1/kyb-review-packet", { headers: { "x-user-role": "borrower" } })); const payload = await response.json(); assert.equal(response.status, 403); assert.equal(payload.error.code, "AUTHORIZATION_DENIED"); assert.equal("data" in payload, false); });
+test("audits KYB packet review changes", async () => { const before = kybReviewPacketAuditCount(); const response = await PATCH(new Request("http://test/api/v1/kyb-review-packet/kyb_packet_demo_001", { method: "PATCH", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ packet_status: "Reviewed" }) }), { params: Promise.resolve({ id: "kyb_packet_demo_001" }) }); assert.equal(response.status, 200); assert.equal(kybReviewPacketAuditCount(), before + 1); });

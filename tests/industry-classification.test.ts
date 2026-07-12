@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { GET, POST } from "../app/api/v1/industry-classification/route.ts";
+import { PATCH } from "../app/api/v1/industry-classification/[id]/route.ts";
+import { industryClassificationAuditCount } from "../lib/industry-classification.ts";
+const headers = { "x-user-role": "bank_analyst" };
+test("returns seeded synthetic industry classifications with trace id", async () => { const response = await GET(new Request("http://test/api/v1/industry-classification", { headers })); const payload = await response.json(); assert.equal(response.status, 200); assert.equal(payload.data.length, 2); assert.ok(payload.trace_id.startsWith("trc_")); });
+test("rejects incomplete industry classification creation", async () => { const response = await POST(new Request("http://test/api/v1/industry-classification", { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: "{}" })); const payload = await response.json(); assert.equal(response.status, 400); assert.equal(payload.error.code, "VALIDATION_ERROR"); });
+test("denies unauthorized industry classification access", async () => { const response = await GET(new Request("http://test/api/v1/industry-classification", { headers: { "x-user-role": "borrower" } })); const payload = await response.json(); assert.equal(response.status, 403); assert.equal(payload.error.code, "AUTHORIZATION_DENIED"); assert.equal("data" in payload, false); });
+test("audits industry classification changes", async () => { const before = industryClassificationAuditCount(); const response = await PATCH(new Request("http://test/api/v1/industry-classification/industry_demo_risk_001", { method: "PATCH", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ consent_status: "Pending" }) }), { params: Promise.resolve({ id: "industry_demo_risk_001" }) }); assert.equal(response.status, 200); assert.equal(industryClassificationAuditCount(), before + 1); });
