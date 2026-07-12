@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { GET, POST } from "../app/api/v1/feature-priority-model/route.ts";
+import { PATCH } from "../app/api/v1/feature-priority-model/[id]/route.ts";
+import { priorityAuditEventCount } from "../lib/feature-priority-model.ts";
+const headers = { "x-user-role": "bank_analyst" };
+test("returns seeded priorities to an authorized analyst", async () => { const response = await GET(new Request("http://test/api/v1/feature-priority-model", { headers })); const payload = await response.json(); assert.equal(response.status, 200); assert.equal(payload.data[0].priority, "P1"); assert.ok(payload.trace_id.startsWith("trc_")); });
+test("rejects incomplete priority payloads", async () => { const response = await POST(new Request("http://test/api/v1/feature-priority-model", { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: "{}" })); const payload = await response.json(); assert.equal(response.status, 400); assert.equal(payload.error.code, "VALIDATION_ERROR"); });
+test("denies unauthorized priority access", async () => { const response = await GET(new Request("http://test/api/v1/feature-priority-model", { headers: { "x-user-role": "borrower" } })); const payload = await response.json(); assert.equal(response.status, 403); assert.equal(payload.error.code, "AUTHORIZATION_DENIED"); assert.equal("data" in payload, false); });
+test("audits priority updates", async () => { const before = priorityAuditEventCount(); const response = await PATCH(new Request("http://test/api/v1/feature-priority-model/priority_fhc_001", { method: "PATCH", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ status: "Ready" }) }), { params: Promise.resolve({ id: "priority_fhc_001" }) }); assert.equal(response.status, 200); assert.equal(priorityAuditEventCount(), before + 1); });

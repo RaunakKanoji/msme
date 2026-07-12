@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { GET, POST } from "../app/api/v1/demo-scenarios/route.ts";
+import { PATCH } from "../app/api/v1/demo-scenarios/[id]/route.ts";
+import { scenarioAuditEventCount } from "../lib/demo-scenarios.ts";
+const headers = { "x-user-role": "bank_analyst" };
+test("returns seeded scenarios to an authorized analyst", async () => { const response = await GET(new Request("http://test/api/v1/demo-scenarios", { headers })); const payload = await response.json(); assert.equal(response.status, 200); assert.equal(payload.data[0].name, "New-to-credit manufacturer"); assert.ok(payload.trace_id.startsWith("trc_")); });
+test("rejects incomplete scenario payloads", async () => { const response = await POST(new Request("http://test/api/v1/demo-scenarios", { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: "{}" })); const payload = await response.json(); assert.equal(response.status, 400); assert.equal(payload.error.code, "VALIDATION_ERROR"); });
+test("denies unauthorized scenario access", async () => { const response = await GET(new Request("http://test/api/v1/demo-scenarios", { headers: { "x-user-role": "borrower" } })); const payload = await response.json(); assert.equal(response.status, 403); assert.equal(payload.error.code, "AUTHORIZATION_DENIED"); assert.equal("data" in payload, false); });
+test("audits scenario updates", async () => { const before = scenarioAuditEventCount(); const response = await PATCH(new Request("http://test/api/v1/demo-scenarios/scenario_owner_001", { method: "PATCH", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ status: "Demo ready" }) }), { params: Promise.resolve({ id: "scenario_owner_001" }) }); assert.equal(response.status, 200); assert.equal(scenarioAuditEventCount(), before + 1); });

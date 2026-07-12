@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { GET, POST } from "../app/api/v1/jobs-to-be-done/route.ts";
+import { PATCH } from "../app/api/v1/jobs-to-be-done/[id]/route.ts";
+import { jobAuditEventCount } from "../lib/jobs-to-be-done.ts";
+const headers = { "x-user-role": "bank_analyst" };
+test("returns seeded jobs to an authorized analyst", async () => { const response = await GET(new Request("http://test/api/v1/jobs-to-be-done", { headers })); const payload = await response.json(); assert.equal(response.status, 200); assert.equal(payload.data[0].audience, "MSME owner"); assert.ok(payload.trace_id.startsWith("trc_")); });
+test("rejects incomplete job payloads", async () => { const response = await POST(new Request("http://test/api/v1/jobs-to-be-done", { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: "{}" })); const payload = await response.json(); assert.equal(response.status, 400); assert.equal(payload.error.code, "VALIDATION_ERROR"); });
+test("denies unauthorized job access", async () => { const response = await GET(new Request("http://test/api/v1/jobs-to-be-done", { headers: { "x-user-role": "borrower" } })); const payload = await response.json(); assert.equal(response.status, 403); assert.equal(payload.error.code, "AUTHORIZATION_DENIED"); assert.equal("data" in payload, false); });
+test("audits job updates", async () => { const before = jobAuditEventCount(); const response = await PATCH(new Request("http://test/api/v1/jobs-to-be-done/job_owner_001", { method: "PATCH", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ stage: "Now" }) }), { params: Promise.resolve({ id: "job_owner_001" }) }); assert.equal(response.status, 200); assert.equal(jobAuditEventCount(), before + 1); });

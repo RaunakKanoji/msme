@@ -1,0 +1,2 @@
+import { SignInButton } from "@clerk/nextjs";
+export default function ForgotPasswordPage() { return <main className="auth-page"><section><p className="eyebrow">MSME Arogya360</p><h1>Reset your password</h1><p>Use the secure Clerk sign-in flow to request a password reset for your account.</p><SignInButton><button className="landing-cta">Continue to secure sign-in</button></SignInButton></section></main>; }

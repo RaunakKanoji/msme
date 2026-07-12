@@ -1,0 +1,14 @@
+import { apiError, createScopeItem, getActor, isAllowedRole, listScopeItems, traceId } from "../../../../lib/track-03-04-scope.ts";
+
+export async function GET(request: Request) {
+  const trace_id = traceId(); const actor = getActor(request);
+  if (!isAllowedRole(actor.role)) return apiError(trace_id, "AUTHORIZATION_DENIED", "You are not authorized to view track scope.", 403);
+  return Response.json({ data: listScopeItems(), trace_id });
+}
+export async function POST(request: Request) {
+  const trace_id = traceId(); const actor = getActor(request);
+  if (!isAllowedRole(actor.role)) return apiError(trace_id, "AUTHORIZATION_DENIED", "You are not authorized to update track scope.", 403);
+  let body: Record<string, unknown>; try { body = await request.json(); } catch { return apiError(trace_id, "VALIDATION_ERROR", "Request body must be valid JSON.", 400); }
+  if (!(["Track 03", "Track 04"].includes(body.track as string)) || ["capability", "outcome", "explanation"].some((field) => typeof body[field] !== "string" || !body[field].trim())) return apiError(trace_id, "VALIDATION_ERROR", "track, capability, outcome, and explanation are required.", 400);
+  return Response.json({ data: createScopeItem(body as { track: "Track 03" | "Track 04"; capability: string; outcome: string; explanation: string }, actor.id), trace_id }, { status: 201 });
+}

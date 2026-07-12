@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { GET, POST } from "../app/api/v1/operating-principles/route.ts";
+import { PATCH } from "../app/api/v1/operating-principles/[id]/route.ts";
+import { principleAuditEventCount } from "../lib/operating-principles.ts";
+const headers = { "x-user-role": "bank_analyst" };
+test("returns seeded principles to an authorized analyst", async () => { const response = await GET(new Request("http://test/api/v1/operating-principles", { headers })); const payload = await response.json(); assert.equal(response.status, 200); assert.equal(payload.data[0].focus, "Borrower trust"); assert.ok(payload.trace_id.startsWith("trc_")); });
+test("rejects incomplete principle payloads", async () => { const response = await POST(new Request("http://test/api/v1/operating-principles", { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: "{}" })); const payload = await response.json(); assert.equal(response.status, 400); assert.equal(payload.error.code, "VALIDATION_ERROR"); });
+test("denies unauthorized principle access", async () => { const response = await GET(new Request("http://test/api/v1/operating-principles", { headers: { "x-user-role": "borrower" } })); const payload = await response.json(); assert.equal(response.status, 403); assert.equal(payload.error.code, "AUTHORIZATION_DENIED"); assert.equal("data" in payload, false); });
+test("audits principle updates", async () => { const before = principleAuditEventCount(); const response = await PATCH(new Request("http://test/api/v1/operating-principles/principle_consent_001", { method: "PATCH", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ status: "Active" }) }), { params: Promise.resolve({ id: "principle_consent_001" }) }); assert.equal(response.status, 200); assert.equal(principleAuditEventCount(), before + 1); });

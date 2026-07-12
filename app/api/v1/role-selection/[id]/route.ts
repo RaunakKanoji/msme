@@ -1,0 +1,2 @@
+import { apiError, getActor, getRole, isAllowedRole, traceId } from "../../../../../lib/role-selection.ts";
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) { const trace_id = traceId(); const actor = getActor(request); if (!isAllowedRole(actor.role)) return apiError(trace_id, "AUTHORIZATION_DENIED", "You are not authorized to configure roles.", 403); const { id } = await params; if (!getRole(id)) return apiError(trace_id, "NOT_FOUND", "Role was not found.", 404); return Response.json({ data: getRole(id), trace_id }); }

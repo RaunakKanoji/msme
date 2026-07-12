@@ -1,0 +1,2 @@
+import { apiError, getActor, getState, isAllowedRole, traceId } from "../../../../../lib/empty-error-states.ts";
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) { const trace_id = traceId(); const actor = getActor(request); if (!isAllowedRole(actor.role)) return apiError(trace_id, "AUTHORIZATION_DENIED", "You are not authorized to configure UI states.", 403); const { id } = await params; return getState(id) ? Response.json({ data: getState(id), trace_id }) : apiError(trace_id, "NOT_FOUND", "UI state was not found.", 404); }

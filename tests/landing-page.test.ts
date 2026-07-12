@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { GET, POST } from "../app/api/v1/landing-page/route.ts";
+import { PATCH } from "../app/api/v1/landing-page/[id]/route.ts";
+import { landingAuditEventCount } from "../lib/landing-page.ts";
+const headers = { "x-user-role": "bank_analyst" };
+test("returns seeded public landing configuration", async () => { const response = await GET(); const payload = await response.json(); assert.equal(response.status, 200); assert.equal(payload.data[0].status, "Published"); assert.ok(payload.trace_id.startsWith("trc_")); });
+test("rejects incomplete landing configuration payloads", async () => { const response = await POST(new Request("http://test/api/v1/landing-page", { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: "{}" })); const payload = await response.json(); assert.equal(response.status, 400); assert.equal(payload.error.code, "VALIDATION_ERROR"); });
+test("denies unauthorized landing configuration changes", async () => { const response = await POST(new Request("http://test/api/v1/landing-page", { method: "POST", headers: { "x-user-role": "borrower", "content-type": "application/json" }, body: "{}" })); const payload = await response.json(); assert.equal(response.status, 403); assert.equal(payload.error.code, "AUTHORIZATION_DENIED"); assert.equal("data" in payload, false); });
+test("audits landing configuration updates", async () => { const before = landingAuditEventCount(); const response = await PATCH(new Request("http://test/api/v1/landing-page/landing_default_001", { method: "PATCH", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ status: "Published" }) }), { params: Promise.resolve({ id: "landing_default_001" }) }); assert.equal(response.status, 200); assert.equal(landingAuditEventCount(), before + 1); });

@@ -1,0 +1,21 @@
+import { apiError, getActor, isAllowedRole, traceId } from "./problem-statement-fit.ts";
+export { apiError, getActor, isAllowedRole, traceId };
+
+export type Persona = {
+  id: string; name: string; role: "MSME owner" | "Bank analyst" | "Risk & compliance"; priority: "Primary" | "Supporting";
+  goal: string; need: string; recommendation: string; confidence: number; explanation: string;
+  source_id: string; source_observed_at: string; freshness: "Current" | "Stale"; completeness: number;
+  created_at: string; updated_at: string; created_by: string; updated_by: string;
+};
+let personas: Persona[] = [
+  { id: "persona_owner_001", name: "Growth-focused MSME owner", role: "MSME owner", priority: "Primary", goal: "Show creditworthiness without a long banking history.", need: "A supportive, action-oriented path to share permitted business evidence.", recommendation: "Start with your verified business details and recent digital collections.", confidence: 91, explanation: "Borrower messaging explains the next step without exposing model or decision internals.", source_id: "persona_research_owner_v1", source_observed_at: "2026-07-11T08:00:00.000Z", freshness: "Current", completeness: 94, created_at: "2026-07-12T08:00:00.000Z", updated_at: "2026-07-12T08:00:00.000Z", created_by: "system.seed", updated_by: "system.seed" },
+  { id: "persona_analyst_001", name: "Relationship bank analyst", role: "Bank analyst", priority: "Primary", goal: "Review a consistent evidence pack quickly and confidently.", need: "Confidence, freshness, missing-data indicators, and an auditable recommendation.", recommendation: "Review stale GST coverage before progressing the assessment.", confidence: 88, explanation: "The analyst workflow combines source-linked evidence with clear exceptions for a faster assisted review.", source_id: "persona_research_analyst_v1", source_observed_at: "2026-07-12T08:00:00.000Z", freshness: "Current", completeness: 97, created_at: "2026-07-12T08:00:00.000Z", updated_at: "2026-07-12T08:00:00.000Z", created_by: "system.seed", updated_by: "system.seed" },
+  { id: "persona_risk_001", name: "Risk & compliance reviewer", role: "Risk & compliance", priority: "Supporting", goal: "Govern decision-support activity with explainable, reviewable controls.", need: "Immutable audit evidence and purpose-limited access to approved explanations.", recommendation: "Confirm the scenario is synthetic before using it in a demo review.", confidence: 76, explanation: "This persona governs outputs and access; autonomous approval and production-model claims are out of scope.", source_id: "persona_research_risk_v1", source_observed_at: "2026-05-20T08:00:00.000Z", freshness: "Stale", completeness: 72, created_at: "2026-07-12T08:00:00.000Z", updated_at: "2026-07-12T08:00:00.000Z", created_by: "system.seed", updated_by: "system.seed" },
+];
+const auditEvents: Array<Record<string, string>> = [];
+export function listPersonas() { return personas; }
+export function getPersona(id: string) { return personas.find((persona) => persona.id === id); }
+export function createPersona(input: Pick<Persona, "name" | "role" | "goal" | "need" | "recommendation" | "explanation">, actor: string) { const now = new Date().toISOString(); const persona: Persona = { id: `persona_${crypto.randomUUID()}`, ...input, priority: "Supporting", confidence: 0, source_id: "manual_persona_entry", source_observed_at: now, freshness: "Current", completeness: 0, created_at: now, updated_at: now, created_by: actor, updated_by: actor }; personas = [persona, ...personas]; audit("target_persona.created", persona.id, actor); return persona; }
+export function updatePersona(id: string, input: Partial<Pick<Persona, "goal" | "need" | "recommendation" | "explanation" | "priority">>, actor: string) { const current = getPersona(id); if (!current) return undefined; const updated = { ...current, ...input, updated_at: new Date().toISOString(), updated_by: actor }; personas = personas.map((persona) => persona.id === id ? updated : persona); audit("target_persona.updated", id, actor); return updated; }
+function audit(event_type: string, entity_id: string, actor_id: string) { auditEvents.push({ id: `audit_${crypto.randomUUID()}`, event_type, entity_id, actor_id, occurred_at: new Date().toISOString() }); }
+export function personaAuditEventCount() { return auditEvents.length; }
