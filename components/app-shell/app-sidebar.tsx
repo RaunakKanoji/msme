@@ -1,0 +1,4 @@
+import { UserButton } from "@clerk/nextjs";
+import Link from "next/link";
+import { SidebarNavigation } from "./sidebar-navigation";
+export function AppSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) { return <aside className="app-sidebar"><div className="sidebar-brand-row"><Link className="wordmark" href="/" aria-label="MSME Arogya360 home"><span>360</span><b>MSME Arogya360</b></Link><button type="button" className="sidebar-collapse-button" onClick={onToggle} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} aria-expanded={!collapsed}><svg aria-hidden="true" viewBox="0 0 24 24"><path d={collapsed ? "m9 6 6 6-6 6" : "m15 6-6 6 6 6"} /></svg></button></div><p>Platform</p><SidebarNavigation /><div className="sidebar-foot"><div className="sidebar-account"><UserButton /><span><strong>Settings</strong><small>Manage your account</small></span></div></div></aside>; }

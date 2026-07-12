@@ -1,24 +1,12 @@
-import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { Show, SignUpButton, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
-import styles from "./page.module.css";
-
-export default function Home() {
-  return <main className={styles.simplePage}>
-    <header className={styles.header}>
-      <Link className={styles.brand} href="/"><span>360</span> MSME Arogya360</Link>
-      <Show when="signed-in"><UserButton /></Show>
-    </header>
-    <section className={styles.card} aria-labelledby="welcome-title">
-      <p>IDBI Innovate 2026</p>
-      <h1 id="welcome-title">Welcome to MSME Arogya360</h1>
-      <span>Sign in or create an account to open the secure dashboard.</span>
-      <div className={styles.actions}>
-        <Show when="signed-out">
-          <SignInButton><button>Sign in</button></SignInButton>
-          <SignUpButton><button className={styles.secondary}>Create account</button></SignUpButton>
-        </Show>
-        <Show when="signed-in"><Link href="/app">Open dashboard</Link></Show>
-      </div>
-    </section>
-  </main>;
-}
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { BrandGradient } from "@/components/foundation/brand-gradient";
+import { SectionHeader } from "@/components/foundation/section-header";
+import { TrackCard } from "@/components/foundation/track-card";
+import { PRODUCT } from "@/lib/constants/product";
+export default function Home() { return <main className="marketing-new"><BrandGradient /><header className="marketing-nav-new"><Link href="/" className="wordmark"><span>360</span>{PRODUCT.name}</Link><div><Show when="signed-in"><UserButton /></Show><Show when="signed-out"><Link href="/signin"><Button variant="outline">Sign in</Button></Link></Show></div></header><section className="hero-new"><Badge variant="outline">{PRODUCT.hackathon}</Badge><h1>{PRODUCT.name}</h1><p>{PRODUCT.tagline}</p><div className="button-row"><Show when="signed-out"><SignUpButton><Button>Start MSME Assessment</Button></SignUpButton></Show><Show when="signed-in"><Link href="/app"><Button>Start MSME Assessment</Button></Link></Show><Link href="/app"><Button variant="outline">View Demo Dashboard</Button></Link></div><small>Prototype decision-support environment · Synthetic data only</small></section><section className="marketing-section-new"><SectionHeader title="Built for more complete MSME context" description="A structured workflow for permitted evidence, explainable review, and clearer next steps for New-to-Credit and New-to-Bank MSMEs." /><div className="three-grid"><Card><CardHeader><CardTitle>Credit readiness gap</CardTitle></CardHeader><CardContent>Many viable MSMEs lack a conventional credit trail. The platform is designed to assemble permitted signals into a structured review context.</CardContent></Card><TrackCard label="Track 03" title="Financial Health Card" description={PRODUCT.track03} status="Upcoming implementation" /><TrackCard label="Track 04" title="Credit Risk Intelligence" description={PRODUCT.track04} status="Upcoming implementation" /></div></section><section className="marketing-section-new muted-section"><SectionHeader title="How it works" description="A disciplined, evidence-led path from onboarding to assisted review." /><div className="three-grid steps-new"><Card><CardHeader><CardTitle>1. Onboard</CardTitle></CardHeader><CardContent>Collect structured business, promoter, consent, and document metadata.</CardContent></Card><Card><CardHeader><CardTitle>2. Review evidence</CardTitle></CardHeader><CardContent>Make freshness, completeness, and missing information visible to the reviewer.</CardContent></Card><Card><CardHeader><CardTitle>3. Support decisions</CardTitle></CardHeader><CardContent>Provide explainable decision-support context; never an autonomous sanction or rejection.</CardContent></Card></div></section><section className="marketing-section-new"><SectionHeader title="Alternate data, used with safeguards" description="Future adapters can bring permitted data sources into a governed, purpose-limited review workflow." /><div className="source-list"><Badge variant="outline">GST</Badge><Badge variant="outline">UPI collections</Badge><Badge variant="outline">Account Aggregator</Badge><Badge variant="outline">EPFO</Badge><Badge variant="outline">Bank statements</Badge><Badge variant="outline">Invoices</Badge></div><Separator /><Alert><AlertTitle>Prototype disclaimer</AlertTitle><AlertDescription>MSME Arogya360 is a prototype decision-support system created for IDBI Innovate 2026. It is not a final loan approval, rejection, or credit sanctioning system. Production use requires bank validation, regulatory review, data-source approval, and model governance.</AlertDescription></Alert></section><footer className="marketing-footer-new"><div><h2>Evidence-led MSME intelligence, built responsibly.</h2><p>Explore the secure demo workspace and the current onboarding foundation.</p></div><Link href="/app"><Button>View Demo Dashboard</Button></Link></footer></main>; }

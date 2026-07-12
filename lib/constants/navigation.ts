@@ -1,0 +1,1 @@
+export const APP_NAVIGATION = [{ title: "Overview", href: "/app" }, { title: "Onboarding", href: "/app/onboarding" }, { title: "Financial Health", href: "/app/financial-health" }, { title: "Default Risk", href: "/app/default-risk" }, { title: "Documents", href: "/app/documents" }, { title: "Reports", href: "/app/reports" }, { title: "Settings", href: "/app/settings" }] as const;
