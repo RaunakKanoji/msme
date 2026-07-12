@@ -1,0 +1,11 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { GET, POST } from "../app/api/v1/signup-invite-flow/route.ts";
+import { PATCH } from "../app/api/v1/signup-invite-flow/[id]/route.ts";
+import { inviteAuditEventCount } from "../lib/signup-invite-flow.ts";
+const headers = { "x-user-role": "bank_analyst" };
+test("returns seeded public invite configuration", async () => { const response = await GET(); const payload = await response.json(); assert.equal(response.status, 200); assert.equal(payload.data[0].status, "Active"); });
+test("rejects invalid synthetic signup", async () => { const response = await POST(new Request("http://test/api/v1/signup-invite-flow", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: "bad", business_name: "x" }) })); const payload = await response.json(); assert.equal(response.status, 400); assert.equal(payload.error.code, "VALIDATION_ERROR"); });
+test("denies unauthorized invite configuration changes", async () => { const response = await POST(new Request("http://test/api/v1/signup-invite-flow", { method: "POST", headers: { "x-user-role": "borrower", "content-type": "application/json" }, body: JSON.stringify({ provider: "x", explanation: "x" }) })); assert.equal(response.status, 403); });
+test("audits synthetic signup", async () => { const before = inviteAuditEventCount(); const response = await POST(new Request("http://test/api/v1/signup-invite-flow", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: "owner@msme.in", business_name: "Demo MSME" }) })); assert.equal(response.status, 200); assert.equal(inviteAuditEventCount(), before + 1); });
+test("audits invite configuration updates", async () => { const before = inviteAuditEventCount(); const response = await PATCH(new Request("http://test/api/v1/signup-invite-flow/invite_demo_001", { method: "PATCH", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ status: "Active" }) }), { params: Promise.resolve({ id: "invite_demo_001" }) }); assert.equal(response.status, 200); assert.equal(inviteAuditEventCount(), before + 1); });

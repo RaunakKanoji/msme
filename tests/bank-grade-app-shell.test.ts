@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { GET, POST } from "../app/api/v1/bank-grade-app-shell/route.ts";
+import { PATCH } from "../app/api/v1/bank-grade-app-shell/[id]/route.ts";
+import { shellAuditEventCount } from "../lib/bank-grade-app-shell.ts";
+const headers = { "x-user-role": "bank_analyst" };
+test("returns seeded shell configuration to an authorized analyst", async () => { const response = await GET(new Request("http://test/api/v1/bank-grade-app-shell", { headers })); const payload = await response.json(); assert.equal(response.status, 200); assert.equal(payload.data[0].status, "Active"); assert.ok(payload.trace_id.startsWith("trc_")); });
+test("rejects incomplete shell configuration payloads", async () => { const response = await POST(new Request("http://test/api/v1/bank-grade-app-shell", { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: "{}" })); const payload = await response.json(); assert.equal(response.status, 400); assert.equal(payload.error.code, "VALIDATION_ERROR"); });
+test("denies unauthorized app shell access", async () => { const response = await GET(new Request("http://test/api/v1/bank-grade-app-shell", { headers: { "x-user-role": "borrower" } })); const payload = await response.json(); assert.equal(response.status, 403); assert.equal(payload.error.code, "AUTHORIZATION_DENIED"); assert.equal("data" in payload, false); });
+test("audits shell configuration updates", async () => { const before = shellAuditEventCount(); const response = await PATCH(new Request("http://test/api/v1/bank-grade-app-shell/shell_default_001", { method: "PATCH", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ status: "Active" }) }), { params: Promise.resolve({ id: "shell_default_001" }) }); assert.equal(response.status, 200); assert.equal(shellAuditEventCount(), before + 1); });
