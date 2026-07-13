@@ -1,0 +1,2 @@
+import AaOneTimeConsentPanel from "@/components/aa-one-time-consent-panel";
+export default function AaOneTimeConsentPage() { return <main className="workspace"><nav className="workspace-nav" aria-label="Consent navigation"><a href="/app/consents">All consents</a><a className="active" href="/app/consents/aa-one-time">AA one-time consent</a><a href="/app/data-sources">Data sources</a></nav><AaOneTimeConsentPanel /></main>; }

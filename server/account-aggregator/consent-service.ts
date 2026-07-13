@@ -1,0 +1,5 @@
+import { getAccountAggregatorProvider } from "./provider.ts";
+import { aaStore } from "./store.ts";
+import type { CreateConsentInput } from "./types.ts";
+export async function createBusinessFinancialConsent(input: CreateConsentInput) { const provider = getAccountAggregatorProvider(); const result = await provider.createConsent(input); return aaStore.saveConsent({ id: crypto.randomUUID(), externalId: result.id, userId: input.userId, organisationId: input.organisationId, status: result.status, url: result.url, from: input.from, to: input.to, fetchType: input.fetchType, createdAt: new Date().toISOString(), expiresAt: new Date(Date.now() + (input.fetchType === "ONETIME" ? 30 : 365) * 86400000).toISOString(), correlationId: input.correlationId, completeness: 0 }); }
+export async function reconcileConsent(id: string) { const local = aaStore.getConsent(id); if (!local) return undefined; const remote = await getAccountAggregatorProvider().getConsent(local.externalId); return aaStore.updateConsent(local.id, { status: remote.status }); }

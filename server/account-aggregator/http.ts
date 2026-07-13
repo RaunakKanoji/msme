@@ -1,0 +1,6 @@
+import { auth } from "@clerk/nextjs/server"; import { AccountAggregatorError, problem } from "./errors.ts";
+const buckets = new Map<string, number[]>();
+export async function requireIntegrationSession(request: Request) { const session = await auth(); const userId = session.userId ?? (process.env.NODE_ENV === "test" ? request.headers.get("x-test-user-id") : null); const organisationId = session.orgId ?? (process.env.NODE_ENV === "test" ? request.headers.get("x-test-organisation-id") : null); if (!userId || !organisationId) throw new AccountAggregatorError("AUTHORIZATION_DENIED", "An active organisation session is required.", 401); return { userId, organisationId }; }
+export function correlationId(request: Request) { return request.headers.get("x-correlation-id") || `setu_${crypto.randomUUID()}`; }
+export function rateLimit(key: string, max = 10, windowMs = 60000) { const now = Date.now(); const recent = (buckets.get(key) ?? []).filter((value) => now - value < windowMs); if (recent.length >= max) throw new AccountAggregatorError("RATE_LIMITED", "Please wait before trying again.", 429); recent.push(now); buckets.set(key, recent); }
+export function safeRoute(handler: () => Promise<Response>, id: string) { return handler().catch((error) => problem(error, id)); }

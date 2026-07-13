@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AccountAggregatorConsent {
+  id String @id @default(cuid())
+  provider String
+  externalConsentId String
+  userId String
+  organisationId String
+  status String
+  vuaMasked String
+  fetchType String
+  consentMode String
+  consentTypes String[]
+  fiTypes String[]
+  purposeCode String
+  purposeText String
+  dataFrom DateTime
+  dataTo DateTime
+  consentStartsAt DateTime
+  consentExpiresAt DateTime
+  dataLifeValue Int
+  dataLifeUnit String
+  frequencyValue Int
+  frequencyUnit String
+  redirectUrlEncrypted String?
+  providerTraceId String?
+  rejectionCode String?
+  rejectionMessage String?
+  approvedAt DateTime?
+  rejectedAt DateTime?
+  revokedAt DateTime?
+  pausedAt DateTime?
+  expiredAt DateTime?
+  lastReconciledAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sessions AccountAggregatorDataSession[]
+  accounts ExternalFinancialAccount[]
+  @@unique([provider, externalConsentId])
+  @@index([organisationId, status])
+}
+
+model AccountAggregatorDataSession {
+  id String @id @default(cuid())
+  provider String
+  externalSessionId String
+  consentId String
+  organisationId String
+  userId String
+  status String
+  format String
+  dataFrom DateTime
+  dataTo DateTime
+  providerTraceId String?
+  fetchAttemptCount Int @default(0)
+  lastFetchAttemptAt DateTime?
+  fetchedAt DateTime?
+  processedAt DateTime?
+  failureCode String?
+  failureMessage String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  consent AccountAggregatorConsent @relation(fields: [consentId], references: [id], onDelete: Cascade)
+  snapshots FinancialSnapshot[]
+  @@unique([provider, externalSessionId])
+  @@index([organisationId, status])
+}
+
+model ExternalFinancialAccount {
+  id String @id @default(cuid())
+  organisationId String
+  consentId String
+  provider String
+  fipId String
+  linkedAccountReference String
+  maskedAccountNumber String
+  accountType String
+  fiType String
+  currency String
+  status String
+  currentBalance Decimal? @db.Decimal(18, 2)
+  balanceAsOf DateTime?
+  branchName String?
+  ifscMaskedOrEncrypted String?
+  openedAt DateTime?
+  lastSyncedAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  consent AccountAggregatorConsent @relation(fields: [consentId], references: [id], onDelete: Cascade)
+  transactions FinancialTransaction[]
+  @@unique([provider, linkedAccountReference])
+}
+
+model FinancialTransaction {
+  id String @id @default(cuid())
+  organisationId String
+  financialAccountId String
+  provider String
+  providerTransactionId String?
+  deduplicationHash String @unique
+  type String
+  mode String?
+  amount Decimal @db.Decimal(18, 2)
+  currency String
+  balanceAfterTransaction Decimal? @db.Decimal(18, 2)
+  narrationEncrypted String?
+  referenceEncrypted String?
+  transactionTimestamp DateTime
+  valueDate DateTime?
+  category String?
+  subcategory String?
+  counterpartyHash String?
+  isRecurring Boolean @default(false)
+  isProbableLoanPayment Boolean @default(false)
+  isProbableSalaryOrRevenue Boolean @default(false)
+  isProbableBankCharge Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  account ExternalFinancialAccount @relation(fields: [financialAccountId], references: [id], onDelete: Cascade)
+}
+
+model FinancialSnapshot {
+  id String @id @default(cuid())
+  organisationId String
+  sourceSessionId String
+  periodStart DateTime
+  periodEnd DateTime
+  dataCompleteness Float
+  accountCount Int
+  transactionCount Int
+  totalInflows Decimal @db.Decimal(18, 2)
+  totalOutflows Decimal @db.Decimal(18, 2)
+  netCashFlow Decimal @db.Decimal(18, 2)
+  averageMonthlyInflow Decimal @db.Decimal(18, 2)
+  averageMonthlyOutflow Decimal @db.Decimal(18, 2)
+  averageBalance Decimal @db.Decimal(18, 2)
+  minimumBalance Decimal @db.Decimal(18, 2)
+  maximumBalance Decimal @db.Decimal(18, 2)
+  cashFlowVolatility Float
+  inflowVolatility Float
+  negativeCashFlowMonths Int
+  lowBalanceDays Int
+  revenueConcentration Float
+  recurringObligationAmount Decimal @db.Decimal(18, 2)
+  estimatedDebtService Decimal @db.Decimal(18, 2)
+  debtServiceCoverageProxy Float
+  liquidityBufferDays Float
+  financialHealthScore Float?
+  calculationVersion String
+  featureVector Json?
+  calculatedAt DateTime @default(now())
+  session AccountAggregatorDataSession @relation(fields: [sourceSessionId], references: [id], onDelete: Cascade)
+  riskAssessments RiskAssessment[]
+}
+
+model RiskAssessment {
+  id String @id @default(cuid())
+  organisationId String
+  financialSnapshotId String
+  modelName String
+  modelVersion String
+  featureSchemaVersion String
+  probabilityOfDefault Float
+  riskBand String
+  confidence Float
+  dataQualityScore Float
+  explanation String
+  topRiskFactors Json
+  topPositiveFactors Json
+  predictionWindowMonths Int @default(12)
+  predictedAt DateTime @default(now())
+  snapshot FinancialSnapshot @relation(fields: [financialSnapshotId], references: [id], onDelete: Cascade)
+}
+
+model WebhookEvent {
+  id String @id @default(cuid())
+  provider String
+  externalEventId String
+  eventType String
+  payloadHash String
+  payloadEncrypted String?
+  processingStatus String
+  attemptCount Int @default(0)
+  receivedAt DateTime @default(now())
+  processedAt DateTime?
+  failureReason String?
+  @@unique([provider, externalEventId])
+}
+
+model FinancialDataAuditEvent {
+  id String @id @default(cuid())
+  organisationId String?
+  actorId String?
+  eventType String
+  entityType String
+  entityId String
+  correlationId String
+  metadata Json?
+  occurredAt DateTime @default(now())
+  @@index([organisationId, occurredAt])
+}

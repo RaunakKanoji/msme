@@ -1,0 +1,2 @@
+import AaPeriodicMonitoringConsentPanel from "@/components/aa-periodic-monitoring-consent-panel";
+export default function AaPeriodicMonitoringConsentPage() { return <main className="workspace"><nav className="workspace-nav" aria-label="Consent navigation"><a href="/app/consents">All consents</a><a href="/app/consents/aa-one-time">AA one-time consent</a><a className="active" href="/app/consents/aa-periodic-monitoring">AA periodic monitoring</a><a href="/app/data-sources">Data sources</a></nav><AaPeriodicMonitoringConsentPanel /></main>; }
