@@ -14,6 +14,8 @@ const SECTIONS: Array<{ label: string; items: Array<{ title: string; href: strin
       { title: "MSME Registry", href: "/bank/msmes", icon: "M4 6h16M4 12h16M4 18h16" },
       { title: "Applications", href: "/bank/applications", icon: "M7 3h7l5 5v13H7V3Zm7 0v5h5M9 13h6M9 17h6" },
       { title: "Alerts", href: "/bank/alerts", icon: "M12 3 3 20h18L12 3Zm0 6v5m0 3h.01" },
+      { title: "Reports", href: "/bank/reports", icon: "M5 19V5h14v14H5Zm4-3v-4m3 4V8m3 8v-6" },
+      { title: "Data Connections", href: "/bank/data-connections", icon: "M8 7h8M8 12h8M8 17h5M4 4h16v16H4V4Z" },
     ],
   },
   {

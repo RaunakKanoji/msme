@@ -1,4 +1,6 @@
 import type { FinancialHealthMetric, FinancialHealthResult, FinancialInsight, FinancialRecommendation, FinancialSnapshot, HealthCategory, MetricStatus } from "./types.ts";
+// Fixed pillar weights (health-score-v1). Exported so presentation layers (pillar breakdown) show the real values.
+export const METRIC_WEIGHTS: Record<string, number> = { "revenue-trend": 0.18, "cash-flow-stability": 0.2, "debt-service": 0.18, liquidity: 0.16, "expense-ratio": 0.16, "working-capital": 0.12 };
 // Single Track 03 health engine. It consumes the normalized FinancialSnapshot and therefore scores Setu-sourced and
 // mock-sourced data through the exact same path — there is no separate calculation for demo mode. Deterministic.
 const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
@@ -59,8 +61,7 @@ export function calculateFinancialHealth(snapshot: FinancialSnapshot): Financial
     metric("working-capital", "Working-capital position", workingCapitalScore, Math.round(workingCapital), inr(workingCapital), "stable", "Liquid balances net of near-term debt obligations.", period),
   ];
 
-  const weights: Record<string, number> = { "revenue-trend": 0.18, "cash-flow-stability": 0.2, "debt-service": 0.18, liquidity: 0.16, "expense-ratio": 0.16, "working-capital": 0.12 };
-  const overallScore = Math.round(metrics.reduce((s, m) => s + m.score * (weights[m.id] ?? 0), 0));
+  const overallScore = Math.round(metrics.reduce((s, m) => s + m.score * (METRIC_WEIGHTS[m.id] ?? 0), 0));
 
   const strengths: FinancialInsight[] = metrics.filter((m) => m.status === "good").map((m) => ({ id: `strength-${m.id}`, title: m.name, detail: m.explanation }));
   const risks: FinancialInsight[] = metrics.filter((m) => m.status === "risk").map((m) => ({ id: `risk-${m.id}`, title: m.name, detail: m.explanation }));

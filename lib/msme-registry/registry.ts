@@ -22,6 +22,7 @@ export type RegistryMsme = {
   state: string;
   branch: string;
   relationshipManager: string;
+  employees: number;
   segment: MsmeSegment;
   scenario: MockFinancialScenario;
   healthScore: number;
@@ -72,7 +73,7 @@ function buildDetail(index: number): MsmeDetail {
     id, legalName, tradingName: legalName.split(" ").slice(0, 2).join(" "),
     maskedPan: `•••••${pad(1000 + index, 4)}•`, gstin: `${pad(geo + 7, 2)}•••••${pad(2000 + index, 4)}•Z•`, udyam: `UDYAM-${STATES[geo].slice(0, 2).toUpperCase()}-${pad(index + 11, 2)}-${pad(70000 + index * 7, 7)}`,
     constitution: index >= 50 ? "Private Limited" : "LLP", industry, nicCode, vintageYears: 2 + Math.floor(rand() * 18),
-    state: STATES[geo], branch: BRANCHES[geo], relationshipManager: RMS[index % RMS.length],
+    state: STATES[geo], branch: BRANCHES[geo], relationshipManager: RMS[index % RMS.length], employees: 12 + ((index * 7) % 80),
     segment: defaultRisk.segment, scenario,
     healthScore: health.overallScore, healthBand: healthBand(health.overallScore, HEALTH_BAND_CONFIG),
     pd: defaultRisk.probabilityOfDefault12M, pdBand: defaultRisk.pdBand, assessmentStatus: defaultRisk.status,
@@ -96,7 +97,7 @@ export function filterRegistry(filters: RegistryFilters): RegistryMsme[] {
     (filters.minScore === undefined || m.healthScore >= filters.minScore) &&
     (filters.maxScore === undefined || m.healthScore <= filters.maxScore) &&
     (!filters.alertsOnly || m.alertCount > 0) &&
-    (!filters.search || `${m.legalName} ${m.id} ${m.gstin}`.toLowerCase().includes(filters.search.toLowerCase())));
+    (!filters.search || `${m.legalName} ${m.id} ${m.gstin} ${m.udyam} ${m.branch}`.toLowerCase().includes(filters.search.toLowerCase())));
 }
 export function listAllAlerts(): Array<RegistryAlert & { msmeId: string; msmeName: string }> {
   return details().flatMap((d) => d.alerts.map((a) => ({ ...a, msmeId: d.msme.id, msmeName: d.msme.legalName })))

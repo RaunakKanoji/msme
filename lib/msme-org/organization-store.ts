@@ -69,7 +69,7 @@ export function checkDuplicates(input: { pan?: string; gstin?: string; udyam?: s
   const exact = matches.some((m) => m.matchedOn.some((k) => ["PAN", "GSTIN", "UDYAM"].includes(k)));
   return { outcome: matches.length === 0 ? "NO_MATCH" : exact ? "EXACT_MATCH" : "POSSIBLE_MATCH", matches };
 }
-export type CreateOrganizationInput = { legalName: string; pan: string; gstin?: string; udyam?: string; constitutionType?: MSMEOrganization["constitutionType"]; industryCode?: string; contactEmail?: string; contactMobile?: string; branchId?: string; relationshipManagerId?: string; source?: OnboardingSource };
+export type CreateOrganizationInput = { legalName: string; tradingName?: string; pan: string; gstin?: string; udyam?: string; constitutionType?: MSMEOrganization["constitutionType"]; industryCode?: string; contactEmail?: string; contactMobile?: string; branchId?: string; relationshipManagerId?: string; source?: OnboardingSource };
 export type CreateOrganizationResult = { created: false; duplicate: DuplicateCheckResult } | { created: true; organization: ReturnType<typeof publicView>; duplicate: DuplicateCheckResult };
 export function createOrganization(input: CreateOrganizationInput, actor: string, idempotencyKey?: string): CreateOrganizationResult {
   const s = db();
@@ -79,7 +79,7 @@ export function createOrganization(input: CreateOrganizationInput, actor: string
   if (duplicate.outcome === "EXACT_MATCH") return { created: false, duplicate };
   const source = input.source ?? "BANK_CREATED";
   const org: MSMEOrganization = {
-    id: `org_msme_${crypto.randomUUID()}`, bankId: BANK_ID, legalName: input.legalName.trim(),
+    id: `org_msme_${crypto.randomUUID()}`, bankId: BANK_ID, legalName: input.legalName.trim(), tradingName: input.tradingName?.trim() || undefined,
     constitutionType: input.constitutionType ?? "PROPRIETORSHIP", pan: input.pan.toUpperCase(),
     primaryGstin: input.gstin, udyamRegistrationNumber: input.udyam, industryCode: input.industryCode,
     customerCategory: "NEW_TO_BANK", homeBranchId: input.branchId, relationshipManagerId: input.relationshipManagerId,

@@ -603,3 +603,48 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .registry-pagination { justify-content: space-between; align-items: center; margin-top: 0.75rem; }
 .page-header h1 .ui-badge { vertical-align: middle; margin-left: 0.5rem; }
 .identity-strip { margin-top: 0.6rem; }
+/* Financial Health Card screen */
+.health-card-top { display: grid; gap: 1rem; grid-template-columns: 1fr; margin-top: 1rem; }
+@media (min-width: 1100px) { .health-card-top { grid-template-columns: 1fr 2fr 1fr; } }
+.gauge { width: 150px; height: 150px; border-radius: 50%; position: relative; margin: 0 auto; }
+.gauge-center { position: absolute; inset: 14%; background: #fff; border-radius: 50%; display: grid; place-content: center; text-align: center; }
+.gauge-center strong { font-size: 2rem; letter-spacing: -0.02em; color: var(--heading); line-height: 1; }
+.gauge-center span { font-size: 0.75rem; color: var(--body-subtle); }
+.gauge-meta { display: grid; justify-items: center; gap: 0.3rem; margin-top: 0.7rem; }
+.trend-svg { width: 100%; height: auto; }
+.pd-big { font-size: 2.3rem; font-weight: 700; letter-spacing: -0.02em; color: var(--heading); margin-bottom: 0.35rem; }
+.pillar-score { display: grid; gap: 0.25rem; min-width: 9rem; }
+.pillar-score span { font-size: 0.78rem; color: var(--body-subtle); }
+.score-num { font-weight: 700; }
+.score-num.band-good { color: #1e7f4f; } .score-num.band-watch { color: #b97e0e; } .score-num.band-risk { color: #c2402f; }
+/* Onboarding wizard stepper + 6-tile KPI strip */
+.wizard-steps { list-style: none; display: flex; gap: 0.5rem; margin: 1rem 0 0.25rem; padding: 0.9rem 1rem; background: #fff; border: 1px solid var(--border-default); border-radius: 12px; overflow-x: auto; }
+.wizard-steps li { display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 9rem; font-size: 0.8rem; color: var(--body-subtle); position: relative; }
+.wizard-steps li:not(:last-child)::after { content: ""; flex: 1; height: 1px; background: var(--border-default); margin: 0 0.5rem; }
+.wizard-steps .wizard-step-dot { width: 1.6rem; height: 1.6rem; border-radius: 50%; display: grid; place-content: center; border: 1.5px solid var(--border-default-medium, var(--border-default)); font-size: 0.75rem; font-weight: 700; flex: none; }
+.wizard-steps li.active { color: var(--brand-strong, var(--brand)); font-weight: 600; }
+.wizard-steps li.active .wizard-step-dot { background: var(--brand, #2f5cff); border-color: var(--brand, #2f5cff); color: #fff; }
+.wizard-steps li span em { display: block; font-style: normal; font-weight: 400; font-size: 0.68rem; color: var(--body-subtle); }
+.kpi-strip-6 { grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 1100px) { .kpi-strip-6 { grid-template-columns: repeat(6, 1fr); } }
+/* Reference dashboard details: score chips, severity dots, KPI denominator */
+.score-chip { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 6px; font-size: 0.78rem; font-weight: 700; }
+.score-chip.chip-good { background: #e3f2e9; color: #1e7f4f; }
+.score-chip.chip-watch { background: #fdf0d7; color: #9a6a00; }
+.score-chip.chip-risk { background: #fbe4e0; color: #c2402f; }
+.severity-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; display: inline-block; flex: none; }
+.alert-type-row { display: flex; align-items: center; gap: 0.5rem; }
+.kpi-denominator { font-style: normal; font-size: 0.85rem; color: var(--body-subtle); font-weight: 500; }
+/* MSME 360 profile + registry reference details */
+.breadcrumb { font-size: 0.8rem; color: var(--body-subtle); margin: 0 0 0.2rem; }
+.breadcrumb a { color: var(--brand, #2f5cff); text-decoration: none; }
+.identity-card h2 { font-size: 1.35rem; margin: 0 0 0.75rem; color: var(--heading); display: flex; align-items: center; gap: 0.6rem; }
+.score-panel { display: grid; gap: 0.4rem; justify-items: start; }
+.alert-tiles { display: grid; gap: 0.6rem; margin-bottom: 0.75rem; }
+.alert-tile { background: #fdf6ef; border: 1px solid #f3dcc2; border-radius: 10px; padding: 0.6rem 0.8rem; }
+.alert-tile-head { display: flex; align-items: center; gap: 0.5rem; }
+.alert-tile-head strong { flex: 1; font-size: 0.85rem; color: var(--heading); }
+.alert-tile p { margin: 0.25rem 0 0 1.1rem; font-size: 0.78rem; color: var(--body-subtle); }
+.registry-search { flex: 1; min-width: 16rem; }
+.page-buttons { display: flex; align-items: center; gap: 0.3rem; }
+.rows-per-page { display: flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; color: var(--body-subtle); }
