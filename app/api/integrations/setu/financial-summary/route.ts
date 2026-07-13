@@ -1,0 +1,2 @@
+import { aaStore } from "@/server/account-aggregator/store"; import { correlationId, requireIntegrationSession, safeRoute } from "@/server/account-aggregator/http";
+export async function GET(request: Request) { const id = correlationId(request); return safeRoute(async () => { const actor = await requireIntegrationSession(request); const summary = aaStore.getFinancialSummary(actor.organisationId); return Response.json({ data: summary ?? null, correlation_id: id }); }, id); }

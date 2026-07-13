@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { GET, POST } from "../app/api/v1/aa-one-time-consent/route.ts";
+import { PATCH } from "../app/api/v1/aa-one-time-consent/[id]/route.ts";
+import { aaOneTimeConsentAuditCount } from "../lib/aa-one-time-consent.ts";
+const headers = { "x-user-role": "bank_analyst" };
+test("returns seeded synthetic AA one-time consent with trace id", async () => { const response = await GET(new Request("http://test/api/v1/aa-one-time-consent", { headers })); const payload = await response.json(); assert.equal(response.status, 200); assert.equal(payload.data.consents[0].status, "Approved"); assert.ok(payload.trace_id.startsWith("trc_")); });
+test("rejects incomplete AA one-time consent requests", async () => { const response = await POST(new Request("http://test/api/v1/aa-one-time-consent", { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: "{}" })); const payload = await response.json(); assert.equal(response.status, 400); assert.equal(payload.error.code, "VALIDATION_ERROR"); });
+test("denies unauthorized AA one-time consent access", async () => { const response = await GET(new Request("http://test/api/v1/aa-one-time-consent", { headers: { "x-user-role": "borrower" } })); const payload = await response.json(); assert.equal(response.status, 403); assert.equal(payload.error.code, "AUTHORIZATION_DENIED"); assert.equal("data" in payload, false); });
+test("audits consumption and stores an immutable summary snapshot", async () => { const before = aaOneTimeConsentAuditCount(); const response = await PATCH(new Request("http://test/api/v1/aa-one-time-consent/aa_consent_demo_001", { method: "PATCH", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ status: "Consumed" }) }), { params: Promise.resolve({ id: "aa_consent_demo_001" }) }); const payload = await response.json(); assert.equal(response.status, 200); assert.ok(payload.data.snapshot_id.startsWith("snapshot_aa_")); assert.equal(aaOneTimeConsentAuditCount(), before + 1); });
