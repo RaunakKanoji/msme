@@ -9,6 +9,8 @@ const isPublicRoute = createRouteMatcher([
   "/forgot-password(.*)",
   "/api/webhooks/setu(.*)",
   "/api/integrations/setu/callback(.*)",
+  "/api/health",
+  "/api/integrations/setu/health",
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
